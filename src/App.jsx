@@ -14,15 +14,19 @@ import {
 const { Header, Sider, Content, Footer } = Layout;
 
 const items = [
-  { key: '/', icon: <HomeOutlined />, label: 'Dashboard' },
+  { key: '/', icon: <HomeOutlined />, label: '首页' },
+  { key: '/', icon: <HomeOutlined />, label: '剧本阶段' },
   {
     key: '/system',
     icon: <SettingOutlined />,
-    label: 'Config',
-    children: [{ key: '/system/User', icon: <UserOutlined />, label: 'User' }]
+    label: '资产生成',
+    children: [
+      { key: '/system/User', icon: <UserOutlined />, label: '角色管理' },
+    { key: '/system/f', icon: <UserOutlined />, label: '场景管理' },
+    ]
   },
-  { key: '/alarm', icon: <WarningOutlined />, label: 'Alarm' },
-  { key: '/history', icon: <HomeOutlined />, label: 'History' }
+  { key: '/alarm', icon: <WarningOutlined />, label: '导演工作台' },
+  { key: '/history', icon: <HomeOutlined />, label: '导出阶段' }
 ];
 
 function App() {
@@ -47,10 +51,6 @@ function App() {
         <Header
           style={{
             background: token.colorBgLayout,
-            padding: '0 16px',
-            display: 'flex',
-            alignItems: 'center',
-            borderBottom: '1px solid #f0f0f0'
           }}
         >
           <Button
