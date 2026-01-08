@@ -9,7 +9,7 @@ const { Title, Text } = Typography;
 const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
-
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const loadData = async () => {
     const list = await getAllProjectsMetadata();
     setProjects(list);
@@ -18,6 +18,7 @@ const Dashboard = () => {
   useEffect(() => { loadData(); }, []);
 
   const handleCreate = () => {
+    setIsModalVisible(false);
     const newProj = createNewProjectState();
     // 初始项目默认进入剧本阶段
     navigate(`/project/${newProj.id}/script`);
@@ -38,7 +39,7 @@ const Dashboard = () => {
         <Button type="primary" size="large" icon={<PlusOutlined />} 
         onClick={handleCreate}
         >
-          新建电影项目
+          新建漫剧项目
         </Button>
       </div>
 
@@ -69,6 +70,12 @@ const Dashboard = () => {
           </Col>
         ))}
       </Row>
+      {/* 使用提取的 Modal 组件 */}
+      <CreateProjectModal 
+        visible={isModalVisible} 
+        onCancel={() => setIsModalVisible(false)} 
+        onCreate={handleCreateConfirm} 
+      />
     </div>
   );
 };

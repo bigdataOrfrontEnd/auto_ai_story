@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-// import { saveProjectToDB } from '../services/storageService';
+import { saveProjectToDB } from '@services/indexdb';
 import { App } from 'antd';
 
 
@@ -21,7 +21,7 @@ export const ProjectProvider = ({ children }) => {
     saveTimeoutRef.current = setTimeout(async () => {
       setSaveStatus('saving');
       try {
-        // await saveProjectToDB(project);
+        await saveProjectToDB(project);
         setSaveStatus('saved');
       } catch (e) {
         console.error("Auto-save failed", e);
