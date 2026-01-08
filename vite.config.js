@@ -22,10 +22,14 @@ export default defineConfig(({ mode }) => {
     //   'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
     // },
     resolve: {
+      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
       alias: {
-        '@': path.resolve(__dirname, 'src/components'),
+        '@components': path.resolve(__dirname, 'src/components'),
         "@pages": path.resolve(__dirname, 'src/pages'),
         '@router': path.resolve(__dirname, 'src/router'),
+        '@layouts': path.resolve(__dirname, 'src/layouts'),
+        '@context': path.resolve(__dirname, 'src/context'),
+        '@services': path.resolve(__dirname, 'services'),
       }
     }
   };
