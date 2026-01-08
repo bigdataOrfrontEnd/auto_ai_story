@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Input, Button, Card, Space, Typography, message, App } from 'antd';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { SendOutlined, ExperimentOutlined } from '@ant-design/icons';
-import { parseScriptToData } from '../services/geminiService';
+// import { parseScriptToData } from '';
 
 const { TextArea } = Input;
 const { Title, Paragraph } = Typography;

@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Typography, Tag, Space, Popconfirm, message } f
 import { PlusOutlined, DeleteOutlined, RightOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getAllProjectsMetadata, createNewProjectState, deleteProjectFromDB } from '@services/indexdb';
-
+import CreateProjectModal from '@components/CreateProjectModal';
 const { Title, Text } = Typography;
 
 const Dashboard = () => {
@@ -18,10 +18,19 @@ const Dashboard = () => {
   useEffect(() => { loadData(); }, []);
 
   const handleCreate = () => {
+    setIsModalVisible(true);
+  };
+  const handleCreateConfirm = async (values) => {
+    // 1. 调用 Service，数据流进入 IndexedDB
+    const newProj = await createNewProjectState(values);
+    
+    // 2. 交互流：关闭弹窗
     setIsModalVisible(false);
-    const newProj = createNewProjectState();
-    // 初始项目默认进入剧本阶段
-    navigate(`/project/${newProj.id}/script`);
+    // 3. 路由流：依据数据流中的 id 和 stage 跳转
+    // 这里的跳转路径符合你提供的 navigate(`/project/${proj.id}/${proj.stage}`) 逻辑
+    navigate(`/project/${newProj.id}/${newProj.stage}`);
+    
+    message.success('电影项目初始化成功');
   };
 
   const handleOpen = (proj) => {

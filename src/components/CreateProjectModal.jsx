@@ -28,7 +28,7 @@ const CreateProjectModal = ({ visible, onCancel, onCreate }) => {
       okText="开始创作"
       cancelText="取消"
       centered
-      destroyOnClose
+      destroyOnHidden
     >
       <Form
         form={form}

@@ -79,29 +79,26 @@ export const deleteProjectFromDB = async (id) => {
   });
 };
 
-// 新建项目的初始模板
-export const createNewProjectState = () => {
-  const id = 'proj_' + Date.now().toString(36);
-
-  return {
-    id,
-    title: '未命名项目',
-    createdAt: Date.now(),
+// 新建项目
+// @services/indexdb
+export const createNewProjectState = async(formValues) => {
+  const newProject = {
+    id: crypto.randomUUID(), // 生成唯一ID
+    title: formValues.title || '未命名项目',
+    ratio: formValues.ratio,
+    description: formValues.description,
+    stage: 'script', // 数据流初始节点：剧本阶段
     lastModified: Date.now(),
-    stage: 'script',
-    targetDuration: '60s',
-    language: '中文',
-    rawScript: `标题：示例剧本
-
-场景 1
-外景。夜晚街道 - 雨夜
-霓虹灯在水坑中反射出破碎的光芒。
-侦探（30岁，穿着风衣）站在街角，点燃了一支烟。
-
-侦探
-这雨什么时候才会停？`,
-    scriptData: null,
-    shots: [],
-    isParsingScript: false,
+    createdAt: Date.now(),
+    // 预留给 LTX-2 的工作流配置空间
+    config: {
+      resolution: formValues.ratio === '16:9' ? [1280, 720] : [720, 1280],
+      fps: 25
+    }
   };
+
+  // 假设这里执行了真正的数据库写入逻辑
+  await saveProjectToDB(newProject);
+  
+  return newProject;
 };
