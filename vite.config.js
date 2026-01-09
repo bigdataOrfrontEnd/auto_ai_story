@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: '0.0.0.0',
+      proxy: {
+        // 匹配所有以 /api 开头的请求
+        '/api': {
+          target: 'http://your-backend-api.com', // 后端真实接口地址
+          changeOrigin: true,                   // 允许跨域
+          rewrite: (path) => path.replace(/^\/api/, '') // 发送请求时移除 /api 前缀
+        }
+      }
     },
     plugins: [react()],
     build: {
