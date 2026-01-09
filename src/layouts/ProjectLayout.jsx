@@ -26,29 +26,29 @@ const ProjectLayout = () => {
   const { project, setProject, saveStatus } = useProject();
   const [isLoading, setIsLoading] = useState(true);
 
-  // 核心逻辑：当 URL 变化或初始化时，同步数据库数据到 Context
-  useEffect(() => {
-    const initData = async () => {
+ // ProjectLayout.jsx
+useEffect(() => {
+  const initData = async () => {
+    // 只有当 Context 里的项目 ID 和当前 URL 的 ID 不一样时，才去查数据库
+    // 这样如果你在步骤间切换（script -> assets），是不会触发重新读取数据库的
+    if (!project || project.id !== projectId) {
       setIsLoading(true);
       try {
-        // 只有当 Context 没数据，或者 ID 与当前 URL 不一致时，才重新读取数据库
-        if (!project || project.id !== projectId) {
-          console.log("正在从 InfoDB 切换/加载项目数据:", projectId);
-          const data = await loadProjectFromDB(projectId);
-          setProject(data);
-        }
+        const data = await loadProjectFromDB(projectId);
+        setProject(data); 
       } catch (err) {
-        console.error("加载项目失败:", err);
-        message.error("项目加载失败，请返回列表重试");
+        message.error("加载项目失败");
         navigate('/dashboard');
       } finally {
         setIsLoading(false);
       }
-    };
-
-    initData();
-  }, [projectId]); // 仅监听 projectId 变化
-
+    } else {
+      // ID 一致，说明是步骤切换，直接结束加载状态
+      setIsLoading(false);
+    }
+  };
+  initData();
+}, [projectId]); // 仅在 URL 的 ID 变化时执行
   // 定义步骤条配置
   const steps = [
     { title: '剧本解析', icon: <FileTextOutlined />, path: 'script' },

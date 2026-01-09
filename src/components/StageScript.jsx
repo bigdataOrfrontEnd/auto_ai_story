@@ -49,6 +49,8 @@ const StageScript = () => {
   
   const analyzeWithStream = async (targetProject) => {
     // 1️⃣ POST 剧本给后端
+    console.log("Submitting script for analysis...", targetProject);
+    
     const res = await fetch('/api/script/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -115,7 +117,7 @@ const StageScript = () => {
         <div style={{ flex: analyzing ? '0 0 45%' : '1', transition: 'all .4s ease' }}>
           <Card variant={false} style={{ background: '#0a0a0a', border: '1px solid #1f1f1f' }}>
             <TextArea
-              value={project.scriptData.story}
+              value={project?.scriptData?.story || ''}
               onChange={(e) =>
                 setProject({
                   ...project,
