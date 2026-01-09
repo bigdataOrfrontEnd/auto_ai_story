@@ -1,16 +1,17 @@
-# React + Vite
+# 记录
+project的数据存放在前端的infoDB中：
+{
+    "id": "proj_001",
+    title,标题
+    ratio，宽高比例
+    description：项目描述，
+    stage：项目阶段，
+    lastModified：
+    createdAt，
+    config：扩展的一些配置
+    scriptData: { "story": "", "characters": [], "scenes": [] }, // Stage 1 产出
+    assets: { "characterImages": {}, "sceneImages": {} },       // Stage 2 产出
+    shots: [ { "id": 1, "videoUrl": "", "status": "pending" } ], // Stage 3 产出
+    exportConfig: { "format": "mp4", "resolution": "1080p" }      // Stage 4 产出
+}
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.

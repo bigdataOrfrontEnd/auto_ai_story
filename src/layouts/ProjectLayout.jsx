@@ -1,48 +1,92 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-// import { saveProjectToDB } from '../services/storageService';
-import { App } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Steps, theme, Typography, Button, Space, App } from 'antd';
+import { Outlet, useNavigate, useLocation, useParams } from 'react-router-dom';
+import { 
+  FileTextOutlined, 
+  PictureOutlined, 
+  VideoCameraOutlined, 
+  ExportOutlined,
+  SaveOutlined
+} from '@ant-design/icons';
 
+const { Header, Content } = Layout;
+const { Title } = Typography;
 
-const ProjectContext = createContext(undefined);
-
-export const ProjectProvider= ({ children }) => {
-  const [project, setProject] = useState<ProjectState | null>(null);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
-  const saveTimeoutRef = useRef(null);
+const ProjectLayout = () => {
+  const { projectId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { token } = theme.useToken();
   const { message } = App.useApp();
 
-  // 自动保存逻辑
+  // 1. 初始化全局项目状态
+  const [project, setProject] = useState({
+    id: projectId,
+    name: '未命名故事',
+    stage: 'script', // script | assets | director | export
+    scriptData: {
+      story: '',
+      characters: [],
+      scenes: [],
+      language: 'zh'
+    },
+    shots: [],
+    lastModified: Date.now()
+  });
+
+  // 2. 自动保存逻辑
   useEffect(() => {
-    if (!project) return;
-
-    setSaveStatus('unsaved');
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-
-    saveTimeoutRef.current = setTimeout(async () => {
-      setSaveStatus('saving');
-      try {
-        // await saveProjectToDB(project);
-        setSaveStatus('saved');
-      } catch (e) {
-        console.error("Auto-save failed", e);
-        message.error("自动保存失败，请检查网络或本地存储");
-      }
-    }, 1500); // 1.5秒防抖
-
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    const saveData = () => {
+      localStorage.setItem(`project_${projectId}`, JSON.stringify(project));
+      // 这里未来可以扩展为调用后端 API
     };
-  }, [project, message]);
+    saveData();
+  }, [project, projectId]);
+
+  // 3. 定义步骤条
+  const steps = [
+    { title: '剧本解析', icon: <FileTextOutlined />, path: 'script' },
+    { title: '角色与资产', icon: <PictureOutlined />, path: 'assets' },
+    { title: '导演工作台', icon: <VideoCameraOutlined />, path: 'director' },
+    { title: '合成与导出', icon: <ExportOutlined />, path: 'export' },
+  ];
+
+  const currentStep = steps.findIndex(s => location.pathname.includes(s.path));
 
   return (
-    <ProjectContext.Provider value={{ project, setProject, saveStatus }}>
-      {children}
-    </ProjectContext.Provider>
+    <Layout style={{ minHeight: '100vh', background: '#000' }}>
+      <Header style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        background: '#0a0a0a',
+        borderBottom: '1px solid #1f1f1f',
+        padding: '0 24px',
+        height: '64px'
+      }}>
+        <Space size="large">
+          <Title level={4} style={{ margin: 0, color: token.colorPrimary }}>AI Story Director</Title>
+          <Steps
+            current={currentStep}
+            onChange={(current) => navigate(`/project/${projectId}/${steps[current].path}`)}
+            items={steps.map(s => ({ title: s.title, icon: s.icon }))}
+            style={{ width: 600, marginLeft: 40 }}
+            size="small"
+          />
+        </Space>
+        
+        <Space>
+          <Button icon={<SaveOutlined />} onClick={() => message.success('项目已手动保存')}>保存</Button>
+          <Button type="primary">预览全片</Button>
+        </Space>
+      </Header>
+
+      <Content style={{ overflowY: 'auto', background: '#050505' }}>
+        {/* 重要：通过 Context 将状态传递给子组件 */}
+        <Outlet context={{ project, setProject }} />
+      </Content>
+    </Layout>
   );
 };
 
-export const useProject = () => {
-  const context = useContext(ProjectContext);
-  if (!context) throw new Error("useProject must be used within ProjectProvider");
-  return context;
-};
+export default ProjectLayout;

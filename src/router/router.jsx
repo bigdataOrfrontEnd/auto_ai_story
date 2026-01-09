@@ -22,7 +22,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'project/:projectId',
-        element: <ProjectLayout />, // 第二层：带 Sider 的工作台布局
+        element: <ProjectLayout/>, // 第二层：带 Sider 的工作台布局
         children: [
           { path: 'script', element: <StageScript /> },
           // { path: 'assets', element: <StageAssets /> },
