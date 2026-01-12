@@ -1,6 +1,6 @@
 # models/project_model.py
 from pydantic import BaseModel
-from typing import List
-
+from typing import Optional
 class ScriptRequest(BaseModel):
-    content: str
+    story: str
+    projectId: Optional[str] = None

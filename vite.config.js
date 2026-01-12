@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         // 匹配所有以 /api 开头的请求
         '/api': {
-          target: 'http://your-backend-api.com', // 后端真实接口地址
+          target: 'http://127.0.0.1:8000', // 后端真实接口地址
           changeOrigin: true,                   // 允许跨域
           rewrite: (path) => path.replace(/^\/api/, '') // 发送请求时移除 /api 前缀
         }

@@ -4,7 +4,9 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from models.project_model import ScriptRequest
 from services.script_service import ScriptService
-
+# 加载资源
+from dotenv import load_dotenv
+load_dotenv()
 app = FastAPI()
 service = ScriptService()
 
@@ -16,10 +18,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/api/script/analyze")
+
+@app.post("/script/analyze")
 async def analyze_script(request: ScriptRequest):
     return StreamingResponse(
-        service.generate_analysis(request.content),
+        service.generate_analysis(request.story, request.projectId),
         media_type="text/event-stream"
     )
 
