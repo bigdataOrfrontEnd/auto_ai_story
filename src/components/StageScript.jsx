@@ -1,17 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Input, Button, Card, Typography, App } from 'antd';
-import { useNavigate } from 'react-router-dom'; // 移除已失效的 useOutletContext
+import { useNavigate } from 'react-router-dom';
 import { ExperimentOutlined, SendOutlined } from '@ant-design/icons';
-// 1. 引入我们定义的全局 Hook
-import { useProject } from '@context/ProjectContext'; 
+import { useProject } from '@context/ProjectContext';
 
 const { TextArea } = Input;
 const { Title, Paragraph } = Typography;
 
 const StageScript = () => {
-  // 2. 修改此处：使用 useProject 代替 useOutletContext
-  const { project, setProject } = useProject(); 
-  
+  const { project, setProject } = useProject();
   const [loading, setLoading] = useState(false);
   const [aiText, setAiText] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
@@ -19,87 +16,107 @@ const StageScript = () => {
   const { message } = App.useApp();
   const outputRef = useRef(null);
 
-  // 校验 project 是否已由 Layout 加载完成
+  useEffect(() => {
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [aiText]);
+
   if (!project) return null;
 
   const handleAnalyze = async () => {
     if (!project.scriptData.story.trim()) {
       return message.warning('请输入剧本故事内容');
     }
-  
+
     setAnalyzing(true);
     setLoading(true);
     setAiText('');
-  
+
     try {
       await analyzeWithStream(project);
-  
-      // 延迟导航，确保用户看到流式输出的最后结果
+      message.success('剧本分析完成！');
+      
       setTimeout(() => {
-        navigate(`/project/${project.id}/assets`);
-      }, 1500); 
-  
+        navigate(`/project/${project.id}/director`);
+      }, 1500);
+
     } catch (err) {
       console.error("Analysis Error:", err);
-      message.error('剧本分析失败，请检查后端服务');
+      message.error(err.message || '剧本分析失败，请检查后端服务');
     } finally {
       setLoading(false);
     }
   };
-  
-  const analyzeWithStream = async (targetProject) => {
-    // 1️⃣ POST 剧本给后端
-    console.log("Submitting script for analysis...", targetProject);
-    
-    const res = await fetch('/api/script/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        story: targetProject.scriptData.story, 
-        projectId: targetProject.id 
-      })
-    });
-    
-    if (!res.ok) throw new Error('提交剧本失败');
 
-    // 2️⃣ SSE 监听分析过程
-    return new Promise((resolve, reject) => {
-      const es = new EventSource(`/api/script/analyze/stream?projectId=${targetProject.id}`);
-      
-      // 接收流式日志 (流水显示效果)
-      es.addEventListener('log', (e) => {
-        setAiText(prev => prev + `▶ ${e.data}\n`);
-        requestAnimationFrame(() => {
-          if (outputRef.current) {
-            outputRef.current.scrollTop = outputRef.current.scrollHeight;
-          }
+  const analyzeWithStream = (targetProject) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const response = await fetch('/api/script/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            story: targetProject.scriptData.story,
+            projectId: targetProject.id,
+          }),
         });
-      });
 
-      // 接收最终结果并存入全局 Context
-      es.addEventListener('result', (e) => {
-        const data = JSON.parse(e.data);
-        setProject(prev => ({
-          ...prev,
-          stage: 'assets', // 更新阶段标记
-          lastModified: Date.now(),
-          scriptData: {
-            ...prev.scriptData,
-            characters: data.characters,
-            scenes: data.scenes
+        if (!response.ok) {
+          throw new Error(`请求失败，状态码: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const messages = buffer.split('\n\n');
+          buffer = messages.pop(); // Keep incomplete message in buffer
+
+          for (const msg of messages) {
+            if (!msg.startsWith('data:')) continue;
+
+            const jsonStr = msg.substring(5).trim();
+            const parsed = JSON.parse(jsonStr);
+            const { event, data } = parsed;
+            
+            switch (event) {
+              case 'stage':
+                setAiText(prev => prev + `\n[STAGE] ${data}\n`);
+                break;
+              case 'log':
+                setAiText(prev => prev + `[LOG] ${data}\n`);
+                break;
+              case 'token':
+                setAiText(prev => prev + data);
+                break;
+              case 'result':
+                setProject(prev => ({
+                  ...prev,
+                  stage: 'director', // Move to next stage
+                  lastModified: Date.now(),
+                  scriptData: {
+                    ...prev.scriptData,
+                    rawText: data.rawText,
+                    characters: data.characters,
+                    scenes: data.scenes,
+                    shots: data.shots,
+                  },
+                }));
+                break;
+              case 'error':
+                throw new Error(`后端分析出错: ${data}`);
+            }
           }
-        }));
-      });
-
-      es.addEventListener('done', () => {
-        es.close();
+        }
         resolve();
-      });
-
-      es.onerror = (err) => {
-        es.close();
+      } catch (err) {
         reject(err);
-      };
+      }
     });
   };
 
@@ -171,8 +188,9 @@ const StageScript = () => {
                 fontFamily: 'monospace',
                 fontSize: 13,
                 lineHeight: 1.6,
-                color: '#33ff33', // 终端绿色，增强流水感
+                color: '#33ff33',
                 whiteSpace: 'pre-wrap',
+                wordBreak: 'break-all',
                 background: '#000',
                 padding: '12px',
                 borderRadius: '4px'

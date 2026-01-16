@@ -6,3 +6,5 @@ websocket-client
 python-dotenv
 pillow
 aiohttp
+json-repair
+Jinja2
